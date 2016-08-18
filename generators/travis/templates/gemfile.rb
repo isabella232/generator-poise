@@ -23,8 +23,7 @@ gem 'chef', github: 'chef/chef'
 gem 'halite', github: 'poise/halite'
 gem 'poise', github: 'poise/poise'
 <% } else { -%>
-gem 'chef', '~> <%- version %>'
-
+gem 'chef', '~> <%- chefVersion %>'
 <% _.forOwn(gems, function(v, n) { -%>
 gem '<%- n %>', '<%- v %>'
 <% }) -%>

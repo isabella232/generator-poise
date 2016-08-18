@@ -39,6 +39,12 @@ var VERSIONS = {
   '12.12.15': {ruby: '2.1.8'},
   '12.13.37': {ruby: '2.1.9'},
 }
+// Add in major and minor versions because we use them a bunch.
+_.forOwn(VERSIONS, function(context, version) {
+  context.version = version;
+  context.majorVersion = semver.major(version);
+  context.minorVersion = semver.major(version) + '.' + semver.minor(version);
+});
 
 module.exports = Base.extend({
   initializing: function() {
@@ -55,17 +61,34 @@ module.exports = Base.extend({
     var chefDep = gemspec.match(/spec.add_dependency\s*\(?\s*['"]chef['"],\s*['"]([^'"']+)['"]/);
     chefDep = chefDep ? chefDep[1].replace(/~>\s*/, '^') : '> 0';
     // Figure out which versions we are going to use.
-    this.travisVersions = _.pickBy(VERSIONS, function(v, k) { return semver.satisfies(k, chefDep); });
+    this.travisVersions = _.pickBy(VERSIONS, function(context) { return semver.satisfies(context.version, chefDep); });
+
   },
   prompting: function () {
   },
   writing: function () {
-    // Write out all the versioned gemfiles.
-    _.forOwn(this.travisVersions, function(context, version) {
-      var shortVer = version.match(/^\d+\.\d+/)[0];
-      var gemfilePath = 'test/gemfiles/chef-'+shortVer+'.gemfile';
-      context.gemfile = gemfilePath;
-      this.copyTpl(gemfilePath, _.merge({template: 'gemfile.rb', version: version, gems: {}, master: false}, context));
+    // Figure out the data for the current major versions.
+    var byMajorVersion = {};
+    _.forOwn(this.travisVersions, function(context) {
+      byMajorVersion[context.majorVersion] = byMajorVersion[context.majorVersion] || [];
+      byMajorVersion[context.majorVersion].push(context);
+    });
+    var majorVersions = _.mapValues(byMajorVersion, function(versions) {
+      versions.sort(function(a, b) { return semver.compare(a.version, b.version); });
+      return _.last(versions);
+    });
+    var travisMatrix = []
+    // Build the matrix and gemfiles for major versions.
+    _.forOwn(majorVersions, function(context) {
+      var gemfilePath = 'test/gemfiles/chef-'+context.majorVersion+'.gemfile';
+      travisMatrix.push({rvm: context.ruby, gemfile: gemfilePath});
+      this.copyTpl(gemfilePath, _.merge({template: 'gemfile.rb', chefVersion: context.minorVersion, gems: {}, master: false}, context));
+    }.bind(this));
+    // Build the matrix and gemfiles for minor versions.
+    _.forOwn(this.travisVersions, function(context) {
+      var gemfilePath = 'test/gemfiles/chef-'+context.minorVersion+'.gemfile';
+      travisMatrix.push({rvm: context.ruby, gemfile: gemfilePath});
+      this.copyTpl(gemfilePath, _.merge({template: 'gemfile.rb', chefVersion: context.version, gems: {}, master: false}, context));
     }.bind(this));
     // Write out a master gemfile if one doesn't already exist. Not handle regen
     // on this for now because I don't want to walk to Ruby dependency graph.
@@ -73,6 +96,11 @@ module.exports = Base.extend({
     if(!this.fs.exists(masterGemfilePath)) {
       this.copyTpl(masterGemfilePath, {template: 'gemfile.rb', master: true});
     }
+    travisMatrix.push({
+      // Master build at the end.
+      rvm: '2.3.1',
+      gemfile: 'test/gemfiles/master.gemfile',
+    });
     // Generate a Travis config.
     var travisYaml = {
       sudo: false,
@@ -82,26 +110,15 @@ module.exports = Base.extend({
       before_install: 'gem install bundler',
       bundler_args: '--binstubs=$PWD/bin --jobs 3 --retry 3',
       script: ['./bin/rake travis'],
-      matrix: {
-        include: _.map(this.travisVersions, function(ctx) {
-          return {
-            rvm: ctx.ruby,
-            gemfile: ctx.gemfile,
-          };
-        }),
-      }
+      matrix: {include: travisMatrix},
     };
-    travisYaml.matrix.include.push({
-      // Master build at the end.
-      rvm: '2.3.1',
-      gemfile: 'test/gemfiles/master.gemfile',
-    });
+    // We need some extra stuff for berks if present.
     if(this.fs.exists(this.destinationPath('Berksfile'))) {
-      // We need some extra stuff for berks.
       travisYaml.addons = {apt: {packages: ['libgecode-dev']}};
       travisYaml.env.global = travisYaml.env.global || [];
       travisYaml.env.global.push('USE_SYSTEM_GECODE=true');
     }
+    // Use a stupidly long lineWidth because I don't like the >- continuation markers.
     this.fs.write(this.destinationPath('.travis.yml'), yaml.safeDump(travisYaml, {lineWidth: 10000000}));
   },
   end: function() {
