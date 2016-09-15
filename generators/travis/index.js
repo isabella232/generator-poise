@@ -38,6 +38,7 @@ var VERSIONS = {
   '12.11.18': {ruby: '2.1.8', gems: {rack: '< 2'}},
   '12.12.15': {ruby: '2.1.8'},
   '12.13.37': {ruby: '2.1.9'},
+  '12.14.60': {ruby: '2.3.1'},
 }
 // Add in major and minor versions because we use them a bunch.
 _.forOwn(VERSIONS, function(context, version) {
