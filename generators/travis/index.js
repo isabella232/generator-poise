@@ -36,8 +36,8 @@ var VERSIONS = {
   '12.9.41': {ruby: '2.1.8', gems: {rack: '< 2', foodcritic: '< 8'}},
   '12.10.24': {ruby: '2.1.8', gems: {rack: '< 2', foodcritic: '< 8'}},
   '12.11.18': {ruby: '2.1.8', gems: {rack: '< 2', foodcritic: '< 8'}},
-  '12.12.15': {ruby: '2.1.8'},
-  '12.13.37': {ruby: '2.1.9'},
+  '12.12.15': {ruby: '2.1.8', {foodcritic: '< 8'}},
+  '12.13.37': {ruby: '2.1.9', {foodcritic: '< 8'}},
   '12.14.60': {ruby: '2.3.1'},
 }
 // Add in major and minor versions because we use them a bunch.
