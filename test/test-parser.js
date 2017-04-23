@@ -20,7 +20,7 @@ var fs = require('fs');
 var memFs = require('mem-fs');
 var path = require('path');
 
-var parser = require('../app/parser');
+var parser = require('../project/parser');
 
 describe('parser', function() {
   [

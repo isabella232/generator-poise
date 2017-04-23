@@ -16,11 +16,23 @@
 # limitations under the License.
 #
 
-eval_gemfile File.expand_path('../../../Gemfile', __FILE__)
+source 'https://rubygems.org/'
 
-<% if(!master) { -%>
-gem 'chef', '~> <%- chefVersion %>'
+gemspec path: File.expand_path('..', __FILE__)
+
+def dev_gem(name, path: File.join('..', name), github: nil)
+  path = File.expand_path(File.join('..', path), __FILE__)
+  if File.exist?(path)
+    gem name, path: path
+  elsif github
+    gem name, git: "https://gitub.com/#{github}.git"
+  end
+end
+<% if(gemfileUser) {-%>
+<%- gemfileUser %>
+<% } else { -%>
+
+dev_gem 'halite'
+dev_gem 'poise'
+dev_gem 'poise-boiler'
 <% } -%>
-<% _(allGems).toPairs().sortBy(0).forEach(function(p) { -%>
-gem '<%- p[0] %>', <%- master ? ("git: 'https://github.com/"+p[1]+".git'") : ("'"+p[1]+"'") %>
-<% }) -%>

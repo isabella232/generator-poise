@@ -1,5 +1,7 @@
 #
-# Copyright 2015, Noah Kantrowitz
+<% copyright.forEach(function(c) { -%>
+# <%- c %>
+<% }) -%>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,16 +18,16 @@
 
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'poise_supervisor/version'
+require '<%- requireName %>/version'
 
 Gem::Specification.new do |spec|
-  spec.name = 'poise-supervisor'
-  spec.version = PoiseSupervisor::VERSION
+  spec.name = '<%- cookbookName %>'
+  spec.version = <%- moduleName %>::VERSION
   spec.authors = ['Noah Kantrowitz']
   spec.email = %w{noah@coderanger.net}
-  spec.description = 'A Chef cookbook for managing the Supervisor process manager.'
+  spec.description = 'A Chef cookbook for managing something.'
   spec.summary = spec.description
-  spec.homepage = 'https://github.com/poise/poise-supervisor'
+  spec.homepage = 'https://github.com/poise/<%- cookbookName %>'
   spec.license = 'Apache 2.0'
 
   spec.files = `git ls-files`.split($/)
@@ -33,10 +35,9 @@ Gem::Specification.new do |spec|
   spec.test_files = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = %w{lib}
 
+  spec.add_dependency 'chef', '>= 12.1', '< 14'
   spec.add_dependency 'halite', '~> 1.0'
   spec.add_dependency 'poise', '~> 2.0'
-  spec.add_dependency 'poise-python', '~> 1.0'
-  spec.add_dependency 'poise-service', '~> 1.0'
 
   spec.add_development_dependency 'poise-boiler', '~> 1.0'
 end

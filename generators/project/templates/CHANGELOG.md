@@ -1,4 +1,4 @@
-# <%= displayName %> Changelog
+# <%- displayName %> Changelog
 
 ## v1.0.0
 

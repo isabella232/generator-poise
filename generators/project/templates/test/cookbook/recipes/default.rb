@@ -1,5 +1,7 @@
 #
-# Copyright 2015, Noah Kantrowitz
+<% copyright.forEach(function(c) { -%>
+# <%- c %>
+<% }) -%>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +16,4 @@
 # limitations under the License.
 #
 
-source 'https://supermarket.chef.io/'
-extension 'halite'
-
-# Force the rebuild every time for development.
-cookbook 'poise', gem: 'poise'
-cookbook '<%= cookbookName %>', gem: '<%= cookbookName %>'
-
-group :test do
-  cookbook '<%= cookbookName %>_test', path: 'test/cookbooks/<%= cookbookName %>_test'
-  cookbook 'apt'
-end
+include_recipe '<%- cookbookName %>'

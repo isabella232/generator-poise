@@ -16,11 +16,6 @@
 # limitations under the License.
 #
 
-eval_gemfile File.expand_path('../../../Gemfile', __FILE__)
-
-<% if(!master) { -%>
-gem 'chef', '~> <%- chefVersion %>'
-<% } -%>
-<% _(allGems).toPairs().sortBy(0).forEach(function(p) { -%>
-gem '<%- p[0] %>', <%- master ? ("git: 'https://github.com/"+p[1]+".git'") : ("'"+p[1]+"'") %>
-<% }) -%>
+<%- requireName %> '<%- requireName %>' do
+  something 'value'
+end

@@ -3,6 +3,7 @@
 # <%- c %>
 <% }) -%>
 #
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,11 +17,4 @@
 # limitations under the License.
 #
 
-eval_gemfile File.expand_path('../../../Gemfile', __FILE__)
-
-<% if(!master) { -%>
-gem 'chef', '~> <%- chefVersion %>'
-<% } -%>
-<% _(allGems).toPairs().sortBy(0).forEach(function(p) { -%>
-gem '<%- p[0] %>', <%- master ? ("git: 'https://github.com/"+p[1]+".git'") : ("'"+p[1]+"'") %>
-<% }) -%>
+require '<%- requireName %>/resources'

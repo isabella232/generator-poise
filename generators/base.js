@@ -15,20 +15,18 @@
 //
 'use strict';
 
-var _ = require('lodash');
-var generators = require('yeoman-generator');
+const _ = require('lodash');
+const Generator = require('yeoman-generator');
 
-module.exports = generators.Base.extend({
-  copyTpl: function(path, context, once) {
-    var destPath = this.destinationPath(path)
-    if(once && this.fs.exists(destPath)) return;
-    var content = this.fs.read(destPath, {defaults: ''});
+module.exports = Generator.extend({
+  copyTpl: function(path, context) {
     context = context || {};
+    context.pathName = context.pathName || 'app';
+    var destPath = this.destinationPath(context.out || path.replace(/\bapp\b/g, context.pathName));
+    if(context.once && this.fs.exists(destPath)) return;
+    var content = this.fs.read(destPath, {defaults: ''});
     context._ = context._ || _;
     context.copyright = content.match(/Copyright.*$/gm) || ['Copyright ' + (new Date().getFullYear()) + ', Noah Kantrowitz'];
-    // context.cookbookName = context.cookbookName || this.cookbookName;
-    // context.displayName = context.displayName || context.cookbookName.replace(/(_|\b)(\w+)/g, function(match, p1, p2) { return p1 + p2[0].toLocaleUpperCase() + p2.substr(1) });
-    // context.requireName = context.requireName || this.cookbookName.replace(/-/, '_');
     this.fs.copyTpl(this.templatePath(context.template || path), destPath, context);
   }
 });
