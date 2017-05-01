@@ -151,9 +151,13 @@ module.exports = Base.extend({
     var gemfile = this.fs.read(this.destinationPath('Gemfile'));
     var devGemRE = /dev_gem ['"]([^"']+)['"](?:.*(?:, github: ['"]([^"']+)['"]))?/g;
     this.devGems = {};
-    var m;
+    var m, m2;
     while(m = devGemRE.exec(gemfile)) {
-      gems[m[1]] = m[2] || ('poise/'+m[1]);
+      var defaultGem = 'poise/' + m[1];
+      if(m2 = m[1].match(/^poise-(application.*)$/)) {
+        defaultGem = 'poise/' + m2[1].replace(/-/g, '_');
+      }
+      gems[m[1]] = m[2] || defaultGem;
     }
     // Write out the template.
     var outPath = this.destinationPath('test/gemfiles/master.gemfile');
