@@ -20,6 +20,7 @@ const Generator = require('yeoman-generator');
 module.exports = Generator.extend({
   initializing: function() {
     this.composeWith(require.resolve('../project'));
+    this.composeWith(require.resolve('../docker'));
     this.composeWith(require.resolve('../travis'));
   }
 });
