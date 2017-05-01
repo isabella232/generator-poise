@@ -82,11 +82,13 @@ module.exports = Base.extend({
       this._writeGemfile(gemfilePath, context.minorVersion, context);
     }.bind(this));
     // Build the matrix and gemfiles for minor versions.
-    _.forOwn(travisVersions, function(context) {
-      var gemfilePath = 'test/gemfiles/chef-'+context.minorVersion+'.gemfile';
-      travisMatrix.push({rvm: context.ruby, gemfile: gemfilePath});
-      this._writeGemfile(gemfilePath, context.version, context);
-    }.bind(this));
+    if(!this.config.get('noMinor')) {
+      _.forOwn(travisVersions, function(context) {
+        var gemfilePath = 'test/gemfiles/chef-'+context.minorVersion+'.gemfile';
+        travisMatrix.push({rvm: context.ruby, gemfile: gemfilePath});
+        this._writeGemfile(gemfilePath, context.version, context);
+      }.bind(this));
+    }
     // Write out a master gemfile.
     this._writeMasterGemfile();
     travisMatrix.push({
