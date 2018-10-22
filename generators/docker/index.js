@@ -65,7 +65,7 @@ module.exports = Base.extend({
     var travisCmd = this.spawnCommandSync('travis', ['encrypt', `KITCHEN_DOCKER_PASS=${this.fs.read(this._path('docker.pass'))}`, '--skip-version-check', '--no-interactive'], {stdio: ['ignore', 'pipe', 'ignore']});
     if(travisCmd.status == 0) {
       // Add encrypted variable to Travis config.
-      var encrypted = travisCmd.stdout.slice(1, -1);
+      var encrypted = travisCmd.stdout.toString().slice(1, -1);
       var travis = yaml.safeLoad(this.fs.read(this.destinationPath('.travis.yml'), {defaults: ''}));
       if(!travis.env) travis.env = {};
       if(!travis.env.global) travis.env.global = [];
@@ -76,6 +76,8 @@ module.exports = Base.extend({
     } else {
       this.log(`     ${chalk.red('fail')} travis encrypt`);
     }
+  },
+  end: function() {
     // Force-add the two important files.
     var lsFiles = this.spawnCommandSync('git', ['ls-files'], {stdio: ['ignore', 'pipe', 'ignore']});
     if(!/$test\/docker\/docker\.pem$/m.test(lsFiles.stdout)) {

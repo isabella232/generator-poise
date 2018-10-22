@@ -71,8 +71,9 @@ module.exports = Base.extend({
     if(!this._folderExists('.git')) this.spawnCommandSync('git', ['init']);
     if(this.config.get('created') && !this.wasCreated) {
       // Create the GitHub repo and enable Travis-CI.
-      this.spawnCommandSync('git', ['create', 'poise/'+this.config.get('name')]);
+      this.spawnCommandSync('hub', ['create', 'poise/'+this.config.get('name')]);
       this.spawnCommandSync('travis', ['enable', '--no-interactive']);
+      this.spawnCommandSync('git', ['branch', '--set-upstream-to', 'origin/master']);
     }
 
     var copyTpl = function(path, context) {
@@ -95,6 +96,22 @@ module.exports = Base.extend({
       copyTpl(path, context);
     }.bind(this);
 
+    // Write or update the gemspec.
+    const gemspecFilename = this.config.get('name') + '.gemspec';
+    const gemspecPath = this.destinationPath(gemspecFilename);
+    if(this.fs.exists(gemspecPath)) {
+      // Gemspec already exists, modify it in-place.
+      var gemspec = this.fs.read(gemspecPath);
+      // Upgrade the chef dependency.
+      gemspec = gemspec.replace(/(spec\.add_dependency 'chef', '>= 12[\d.]*').*$/m, "$1, '< 15'");
+      // Write out updated gemspec.
+      this.fs.write(gemspecPath, gemspec);
+    } else {
+      // Need to specify the filename because it doesn't follow the usual pattern,
+      // uses the gemName not the requireName.
+      copyTpl('app.gemspec', {out: gemspecFilename});
+    }
+
     copyTpl('.gitignore');
     copyTplOnce('.kitchen.yml');
     copyTpl('.yardopts');
@@ -110,9 +127,6 @@ module.exports = Base.extend({
     copyTpl('Gemfile', {gemfileUser: gemfileUser});
     copyTpl('LICENSE');
     copyTpl('Rakefile');
-    // Need to specify the filename because it doesn't follow the usual pattern,
-    // uses the gemName not the requireName.
-    copyTplOnce('app.gemspec', {out: this.config.get('name')+'.gemspec'});
     copyTplOnce('README.md');
     if(!this._folderExists('lib')) {
       copyTplOnce('chef/attributes/default.rb');
@@ -124,10 +138,13 @@ module.exports = Base.extend({
       copyTpl('lib/app/resources/app.rb');
     }
     if(!this._folderExists('test')) {
-      copyTpl('test/cookbook/metadata.rb')
-      copyTpl('test/cookbook/recipes/default.rb')
+      copyTpl('test/cookbook/metadata.rb');
+      copyTpl('test/cookbook/recipes/default.rb');
+      copyTpl('test/integration/default/serverspec/default_spec.rb');
+      copyTpl('test/spec/recipe_spec.rb');
+      copyTpl('test/spec/resources/app_spec.rb');
     }
-    copyTplOnce('test/spec/spec_helper.rb')
+    copyTplOnce('test/spec/spec_helper.rb');
   },
   _folderExists: function(path) {
     try {
